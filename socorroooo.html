@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fight Shop - Loja Oficial</title>
+    <style>
+        /* --- ESTILOS GERAIS (Tema Escuro / Fight) --- */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: #0b0b0b;
+            color: #ffffff;
+            padding: 40px 8%;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 40px;
+            border-bottom: 1px solid #1a1a1a;
+            padding-bottom: 20px;
+        }
+
+        header h1 {
+            font-size: 1.8rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        /* --- BOTÃO DO CARRINHO (MENU) --- */
+        .cart-icon-btn {
+            background: none;
+            border: none;
+            color: white;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .cart-icon-btn svg {
+            width: 28px;
+            height: 28px;
+            fill: currentColor;
+        }
+
+        /* --- FILTROS DE CATEGORIA --- */
+        .filtros-container {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+        }
+
+        .btn-filtro {
+            background: #161616;
+            color: #888888;
+            border: 1px solid #222;
+            padding: 10px 20px;
+            font-weight: bold;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-filtro:hover, .btn-filtro.ativo {
+            background: #ffffff;
+            color: #000000;
+            border-color: #ffffff;
+        }
+
+        /* --- VITRINE DE PRODUTOS --- */
+        .vitrine {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 25px;
+        }
+
+        .card-produto {
+            background: #111111;
+            border: 1px solid #1a1a1a;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        .card-produto img {
+            width: 100%;
+            height: 200px;
+            object-fit: contain;
+            margin-bottom: 15px;
+            background: #161616;
+        }
+
+        /* Tags de Status do Estoque */
+        .tag-estoque {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            font-size: 0.7rem;
+            font-weight: bold;
+            text-transform: uppercase;
+            padding: 4px 8px;
+            border-radius: 2px;
+        }
+        .tag-disponivel { background: #1b4332; color: #52b788; }
+        .tag-critico { background: #7f5539; color: #b5828c; }
+        .tag-esgotado { background: #b7094c; color: #ffccd5; opacity: 0.7; }
+
+        .cat-label {
+            font-size: 0.75rem;
+            color: #666;
+            text-transform: uppercase;
+            margin-bottom: 5px;
+            letter-spacing: 1px;
+        }
+
+        .prod-titulo {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .prod-descricao {
+            font-size: 0.85rem;
+            color: #aaa;
+            line-height: 1.4;
+            margin-bottom: 20px;
+            flex-grow: 1;
+        }
+
+        .compra-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: auto;
+        }
+
+        .prod-preco {
+            font-size: 1.3rem;
+            font-weight: bold;
+        }
+
+        .btn-add-carrinho {
+            background: #e63946;
+            color: #fff;
+            border: none;
+            padding: 10px 15px;
+            font-weight: bold;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .btn-add-carrinho:hover { background: #bd1f36; }
+        .btn-add-carrinho:disabled { background: #222; color: #555; cursor: not-allowed; }
+
+        /* --- CARRINHO LATERAL (DRAWER) --- */
+        .carrinho-lateral {
+            position: fixed;
+            top: 0;
+            right: -380px;
+            width: 380px;
+            height: 100%;
+            background: #0f0f0f;
+            border-left: 1px solid #1a1a1a;
+            box-shadow: -5px 0 25px rgba(0,0,0,0.5);
+            transition: right 0.3s ease;
+            z-index: 1000;
+            padding: 30px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .carrinho-lateral.aberto { right: 0; }
+
+        .carrinho-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .btn-fechar {
+            background: none;
+            border: none;
+            color: #666;
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+        .lista-itens {
+            flex-grow: 1;
+            overflow-y: auto;
+            margin-bottom: 20px;
+        }
+
+        .item-carrinho {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 0;
+            border-bottom: 1px solid #1a1a1a;
+            font-size: 0.9rem;
+        }
+
+        .resumo-valores {
+            border-top: 1px solid #222;
+            padding-top: 20px;
+            margin-bottom: 20px;
+        }
+
+        .linha-valores {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            font-size: 0.9rem;
+            color: #aaa;
+        }
+
+        .linha-valores.total {
+            color: #fff;
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-top: 15px;
+        }
+
+        .btn-checkout {
+            background: #ffffff;
+            color: #000000;
+            width: 100%;
+            border: none;
+            padding: 15px;
+            font-weight: bold;
+            text-transform: uppercase;
+            cursor: pointer;
+            letter-spacing: 1px;
+        }
+
+        /* --- ÁREA DO PIX --- */
+        .modal-pix {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: #111;
+            border: 1px solid #222;
+            padding: 30px;
+            z-index: 2000;
+            width: 90%;
+            max-width: 400px;
+            text-align: center;
+        }
+
+        .modal-pix-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8);
+            z-index: 1999;
+        }
+
+        #qrcode {
+            background: white;
+            padding: 15px;
+            display: inline-block;
+            margin: 20px 0;
+        }
+
+        .input-copia {
+            width: 100%;
+            background: #161616;
+            border: 1px solid #222;
+            color: #888;
+            padding: 10px;
+            font-size: 0.8rem;
+            text-align: center;
+            margin-bottom: 15px;
+        }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+</head>
+<body>
+
+    <header>
+        <h1>FIGHT / LOJA</h1>
+        <button class="cart-icon-btn" onclick="toggleCarrinho()">
+            <svg viewBox="0 0 24 24"><path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12.9-1.63h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49c.08-.14.12-.31.12-.48 0-.55-.45-1-1-1H5.21l-.94-2H1zm16 16c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2z"/></svg>
+        </button>
+    </header>
+
+    <div class="filtros-container" id="filtros">
+        <button class="btn-filtro ativo" onclick="filtrarCategoria('TODOS')">Todos</button>
+        <button class="btn-filtro" onclick="filtrarCategoria('KIMONO')">Kimono</button>
+        <button class="btn-filtro" onclick="filtrarCategoria('PROTEÇÃO')">Proteção</button>
+        <button class="btn-filtro" onclick="filtrarCategoria('VESTUÁRIO')">Vestuário</button>
+        <button class="btn-filtro" onclick="filtrarCategoria('CALÇADO')">Calçado</button>
+    </div>
+
+    <div class="vitrine" id="vitrine">Carregando produtos...</div>
+
+    <div class="carrinho-lateral" id="carrinho">
+        <div class="carrinho-header">
+            <h2>Carrinho</h2>
+            <button class="btn-fechar" onclick="toggleCarrinho()">&times;</button>
+        </div>
+        <div class="lista-itens" id="itens-checkout">
+            <p style="color: #666;">Seu carrinho está vazio.</p>
+        </div>
+        <div class="resumo-valores">
+            <div class="linha-valores"><span>Subtotal</span><span id="subtotal">R$ 0,00</span></div>
+            <div class="linha-valores"><span>Frete</span><span>Grátis</span></div>
+            <div class="linha-valores total"><span>TOTAL</span><span id="total">R$ 0,00</span></div>
+        </div>
+        <button class="btn-checkout" onclick="abrirJanelaPix()">Finalizar e Gerar PIX</button>
+    </div>
+
+    <div class="modal-pix-overlay" id="pix-overlay" onclick="fecharJanelaPix()"></div>
+    <div class="modal-pix" id="pix-modal">
+        <h3>Pagamento via PIX</h3>
+        <div id="qrcode"></div>
+        <input type="text" id="copia-cola" class="input-copia" readonly onclick="this.select(); document.execCommand('copy'); alert('Código copiado!');">
+        <button class="btn-filtro" onclick="fecharJanelaPix()">Fechar</button>
+    </div>
+
+    <script>
+        // CONFIGURAÇÕES DA CONTA RECEBEDORA
+        const URL_EXCEL_CSV = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQUnR85Ve36Ja5ELVVLI3piwJtLwXH5zuENbgK88Pzilp48w0DB_MyRo8T4dk02-_jQuQblRtLkapXe/pub?output=csv';
+        const CONFIG_PIX = {
+            chave: '06526846297',
+            nome: 'Victor Marques ds Cunha',
+            cidade: 'Manaus'
+        };
+
+        let dbProdutos = [];
+        let carrinho = [];
+
+        // Função auxiliar para converter uma linha CSV contendo aspas e vírgulas internas em um array de colunas
+        function parsearLinhaCSV(textoLinha) {
+            let colunas = [];
+            let dentroDeAspas = false;
+            let colunaAtual = '';
+            
+            for (let i = 0; i < textoLinha.length; i++) {
+                let caractere = textoLinha[i];
+                
+                if (caractere === '"') {
+                    dentroDeAspas = !dentroDeAspas; // Alterna o estado de aspas
+                } else if (caractere === ',' && !dentroDeAspas) {
+                    colunas.push(colunaAtual.trim());
+                    colunaAtual = '';
+                } else {
+                    colunaAtual += caractere;
+                }
+            }
+            colunas.push(colunaAtual.trim());
+            return colunas;
+        }
+
+        // Carregar e processar os dados originados no Excel
+        async function buscarDadosExcel() {
+            try {
+                const res = await fetch(URL_EXCEL_CSV);
+                const csvText = await res.text();
+                // Divide por quebras de linha independentemente do sistema operacional (\r\n ou \n)
+                const linhas = csvText.split(/\r?\n/).slice(1); 
+
+                dbProdutos = linhas.map(linha => {
+                    if (!linha.trim()) return null;
+                    
+                    // Usa o novo sistema inteligente de leitura que aceita vírgulas na descrição
+                    const col = parsearLinhaCSV(linha);
+                    
+                    if(col.length >= 7) {
+                        return {
+                            id: col[0],
+                            categoria: col[1].toUpperCase(),
+                            nome: col[2],
+                            descricao: col[3],
+                            preco: parseFloat(col[4]),
+                            imagem: col[5],
+                            estoque: parseInt(col[6])
+                        };
+                    }
+                    return null;
+                }).filter(p => p !== null);
+
+                renderizarProdutos('TODOS');
+            } catch (err) {
+                console.error("Erro na leitura da planilha:", err);
+                document.getElementById('vitrine').innerHTML = "Erro ao carregar estoque.";
+            }
+        }
+
+        // Renderização dos cards com tratamento visual de estoque
+        function renderizarProdutos(categoriaFiltro) {
+            const vitrine = document.getElementById('vitrine');
+            vitrine.innerHTML = '';
+
+            // Mapeamento para aceitar tanto categorias com acento (HTML) quanto sem acento (Planilha)
+            const tratarFiltro = (cat) => {
+                if (cat === 'PROTEÇÃO') return 'PROTECAO';
+                if (cat === 'VESTUÁRIO') return 'VESTUARIO';
+                if (cat === 'CALÇADO') return 'CALCADO';
+                return cat;
+            };
+
+            const filtroNormalizado = tratarFiltro(categoriaFiltro);
+
+            const produtosFiltrados = dbProdutos.filter(p => filtroNormalizado === 'TODOS' || p.categoria === filtroNormalizado);
+
+            if (produtosFiltrados.length === 0) {
+                vitrine.innerHTML = '<p style="color: #666; grid-column: 1/-1; text-align: center;">Nenhum produto encontrado nesta categoria.</p>';
+                return;
+            }
+
+            produtosFiltrados.forEach(p => {
+                let tagEstoque = '';
+                let btnStatus = '';
+
+                if (p.estoque === 0) {
+                    tagEstoque = `<span class="tag-estoque tag-esgotado">Esgotado</span>`;
+                    btnStatus = 'disabled';
+                } else if (p.estoque <= 3) {
+                    tagEstoque = `<span class="tag-estoque tag-critico">Últimas ${p.estoque} unid.</span>`;
+                } else {
+                    tagEstoque = `<span class="tag-estoque tag-disponivel">${p.estoque} em estoque</span>`;
+                }
+
+                vitrine.innerHTML += `
+                    <div class="card-produto">
+                        ${tagEstoque}
+                        <img src="${p.imagem}" alt="${p.nome}">
+                        <span class="cat-label">${p.categoria}</span>
+                        <h3 class="prod-titulo">${p.nome}</h3>
+                        <p class="prod-descricao">${p.descricao}</p>
+                        <div class="compra-row">
+                            <span class="prod-preco">R$ ${p.preco.toFixed(2).replace('.', ',')}</span>
+                            <button class="btn-add-carrinho" ${btnStatus} onclick="adicionarAoCarrinho('${p.id}')">+ Carrinho</button>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        function filtrarCategoria(categoria) {
+            document.querySelectorAll('.btn-filtro').forEach(btn => btn.classList.remove('ativo'));
+            event.target.classList.add('ativo');
+            renderizarProdutos(categoria.toUpperCase());
+        }
+
+        function toggleCarrinho() {
+            document.getElementById('carrinho').classList.toggle('berto');
+            // Correção de compatibilidade caso queira usar a classe 'aberto' do CSS
+            document.getElementById('carrinho').classList.toggle('aberto');
+        }
+
+        // Gerenciamento do carrinho interno
+        function adicionarAoCarrinho(id) {
+            const produto = dbProdutos.find(p => p.id === id);
+            const noCarrinho = carrinho.find(item => item.id === id);
+
+            if (noCarrinho) {
+                if (noCarrinho.qtd < produto.estoque) {
+                    noCarrinho.qtd++;
+                } else {
+                    alert("Limite de estoque atingido para este item.");
+                    return;
+                }
+            } else {
+                carrinho.push({ ...produto, qtd: 1 });
+            }
+            atualizarInterfaceCarrinho();
+        }
+
+        function atualizarInterfaceCarrinho() {
+            const container = document.getElementById('itens-checkout');
+            if(carrinho.length === 0) {
+                container.innerHTML = '<p style="color: #666;">Seu carrinho está vazio.</p>';
+                document.getElementById('subtotal').innerText = "R$ 0,00";
+                document.getElementById('total').innerText = "R$ 0,00";
+                return;
+            }
+
+            container.innerHTML = '';
+            let totalGeral = 0;
+
+            carrinho.forEach(item => {
+                totalGeral += (item.preco * item.qtd);
+                container.innerHTML += `
+                    <div class="item-carrinho">
+                        <div>
+                            <div><strong>${item.nome}</strong></div>
+                            <div style="color: #666; font-size:0.8rem;">Qtd: ${item.qtd}</div>
+                        </div>
+                        <div>R$ ${(item.preco * item.qtd).toFixed(2).replace('.', ',')}</div>
+                    </div>
+                `;
+            });
+
+            document.getElementById('subtotal').innerText = `R$ ${totalGeral.toFixed(2).replace('.', ',')}`;
+            document.getElementById('total').innerText = `R$ ${totalGeral.toFixed(2).replace('.', ',')}`;
+        }
+
+        // Lógica Avançada de montagem da Payload padrão Banco Central (EMV/BR Code)
+        function criarPayloadPixEstatico(valor) {
+            const f = (id, c) => id + String(c.length).padStart(2, '0') + c;
+            const infoConta = f('00', 'BR.GOV.BCB.PIX') + f('01', CONFIG_PIX.chave);
+            
+            let payload = f('00', '01') + 
+                          f('26', infoConta) + 
+                          f('52', '0000') + 
+                          f('53', '986') + 
+                          f('54', valor.toFixed(2)) + 
+                          f('58', 'BR') + 
+                          f('59', CONFIG_PIX.nome.substring(0, 25)) + 
+                          f('60', CONFIG_PIX.cidade.substring(0, 15)) + 
+                          f('62', f('05', 'FIGHTSHOP'));
+            
+            payload += '6304';
+
+            // Cálculo exato do CRC16 CCITT
+            let crc = 0xFFFF;
+            for (let c = 0; c < payload.length; c++) {
+                crc ^= payload.charCodeAt(c) << 8;
+                for (let i = 0; i < 8; i++) {
+                    if (crc & 0x8000) crc = (crc << 1) ^ 0x1021;
+                    else crc = crc << 1;
+                }
+            }
+            const crcString = (crc & 0xFFFF).toString(16).toUpperCase().padStart(4, '0');
+            return payload + crcString;
+        }
+
+        function abrirJanelaPix() {
+            if(carrinho.length === 0) return alert("Adicione itens antes de finalizar.");
+            
+            const total = carrinho.reduce((acc, item) => acc + (item.preco * item.qtd), 0);
+            const copiaColaCode = criarPayloadPixEstatico(total);
+
+            document.getElementById('pix-overlay').style.display = 'block';
+            document.getElementById('pix-modal').style.display = 'block';
+            document.getElementById('copia-cola').value = copiaColaCode;
+
+            document.getElementById('qrcode').innerHTML = '';
+            new QRCode(document.getElementById('qrcode'), {
+                text: copiaColaCode,
+                width: 180,
+                height: 180,
+                colorDark : "#000000",
+                colorLight : "#ffffff"
+            });
+        }
+
+        function fecharJanelaPix() {
+            document.getElementById('pix-overlay').style.display = 'none';
+            document.getElementById('pix-modal').style.display = 'none';
+        }
+
+        // Executar ao abrir o site
+        buscarDadosExcel();
+    </script>
+</body>
+</html>
